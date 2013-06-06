@@ -1,7 +1,7 @@
 from numpy import zeros, asarray
 from numpy import sum as npsum
 from scipy.linalg import svd
-from math import log 
+from math import log
 from porterstemmer import Stemmer
 
 
