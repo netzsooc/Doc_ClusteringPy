@@ -39,5 +39,7 @@ def get_vocabulary(docs, ignorechars=ignore, stopwords=stop):
 
 
 def cov(term_set, docs):
+    if len(term_set) == 0:
+        return set()
     return set([d for d in docs.keys()
                 if term_set.issubset(docs[d])])

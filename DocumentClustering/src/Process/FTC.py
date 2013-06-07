@@ -26,30 +26,36 @@ def get_all_freq_term_sets(T, D, enc, minsup):
 
 
 def FTC(D, minsup, enc, T):
-    sel_terms = []
+    sel_terms = set()
     n = len(D)
     rem_term_sets = get_all_freq_term_sets(T, D, enc, minsup)
-#     rem_term_sets = set([enc[i] for i in T 
-#                          if len(cov({enc[i]}, D)) >= minsup * len(D)])
-    while len(cov(sel_terms)) != n:
-        n = len(D)
-        print(n)
+#     print(len(sel_terms))
+    while len(cov(sel_terms, D)) != n:
         candidates = []
         for t in rem_term_sets:
-            c = cov(t)
-            eo = EO(c, rem_term_sets)
+            c = cov(t, D)
+            eo = EO(c, rem_term_sets, D)
             candidates.append((eo,t))
-        best_cand = min(candidates[1])
-        sel_terms.append(best_cand)
-        rem_term_sets.remove(best_cand)
+        best_cand = min(candidates)
+#         print(best_cand)
+        sel_terms.union(best_cand[1])
+        rem_term_sets.remove(best_cand[1])
         
+        Ds = [d for d in cov(best_cand[1], D)]
+        for d in Ds:
+            D.pop(d, None)
 
+    for i in range(len(sel_terms)):
+        sel_terms[i] = (sel_terms[i], cov(sel_terms[i], D))
+    return sel_terms
 
-def EO(C, R):
+def EO(C, R, D):
     sm = 0
 
     for d in C:
-        f = len([{s} for s in R if {s}.issubset(d)])
+        f = len([s for s in R if s.issubset(D[d])])
+#         if f == 0:
+#             f = 0.000001
         sm += (-(1/f) * log(1/f))
 
     return sm
@@ -57,7 +63,7 @@ def EO(C, R):
 
 def main(*args):
     
-    minsup = .22
+    minsup = .2
     docs = [
             "Human machine interface for ABC computer applications",
             "A survey of user opinion of computer system response time",
@@ -72,34 +78,37 @@ def main(*args):
 #     docs = [title for title in open("/home/netzsooc/Documents/infotec/"\
 #                                         "Investigacion/justTitles.txt")]
     
-
+    print("getting vocabulary")
     T = get_vocabulary(docs)
+    print("building encoding and decoding dictionaries")
     enc = index_words(T)
-    dec = dict([(v,k) for k,v in enc.items()])
+#     dec = dict([(v,k) for k,v in enc.items()])
     D = {}
+    print("Building D")
     for i in range(len(docs)):
         D["D" + str(i)] = get_terms(docs[i], enc)
+    print("Done")
     print(len(T))
-#     S = set([enc[i] for i in T if len(cov({enc[i]}, D)) >= minsup * len(D)])
-    F = get_all_freq_term_sets(T, D, enc, minsup)
-#     F1 =[]
-#     for i in range(1, len(S) + 1):
-#         F += [set(j) for j in combinations(S,i)]
-#     for i in F1:
-#         F.append(set(i))
+    print("getting FTC")
+    out = FTC(D, minsup, enc, T)
+    print("done")
+#     print("going out")
+#     print(out)
+#     print("goodbye")
+#     F = get_all_freq_term_sets(T, D, enc, minsup)
 #     print(F)
-    print(len(F))
-    temp = []
-    for term in F:
-        for i in (cov(term, D)):
-            temp.append(i)
-            
-    temp = list(set(temp))
-     
-    print("temp_set =",len(temp), "docs =", len(docs))    
-    print(len(temp) == len(docs))
-    print(temp)
-    print(F)
+#     print(len(F))
+#     temp = []
+#     for term in F:
+#         for i in (cov(term, D)):
+#             temp.append(i)
+#             
+#     temp = list(set(temp))
+#      
+#     print("temp_set =",len(temp), "docs =", len(docs))    
+#     print(len(temp) == len(docs))
+#     print(temp)
+#     print(F)
 
     
 if __name__ == "__main__": main()
