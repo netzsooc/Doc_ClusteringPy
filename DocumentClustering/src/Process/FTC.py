@@ -3,26 +3,74 @@ Created on Jun 6, 2013
 
 @author: netzsooc
 '''
-
+from itertools import combinations
+from math import log
 from prepro import get_vocabulary, get_terms, cov, index_words
 
+
+def get_all_freq_term_sets(T, D, enc, minsup):
+    S = set([enc[t] for t in T if len(cov({enc[t]}, D)) >= minsup * len(D)])
+    F = []
+    for i in range(1, len(S) + 1):
+        F += [set(j) for j in combinations(S,i)]
+    i = 0
+    while i < len(F):
+        term = F[i]
+        if len(cov(term, D)) >= minsup * len(D):
+            i += 1
+            continue
+        else:
+            F.remove(term)
+    return F    
+
+
+
+def FTC(D, minsup, enc, T):
+    sel_terms = []
+    n = len(D)
+    rem_term_sets = get_all_freq_term_sets(T, D, enc, minsup)
+#     rem_term_sets = set([enc[i] for i in T 
+#                          if len(cov({enc[i]}, D)) >= minsup * len(D)])
+    while len(cov(sel_terms)) != n:
+        n = len(D)
+        print(n)
+        candidates = []
+        for t in rem_term_sets:
+            c = cov(t)
+            eo = EO(c, rem_term_sets)
+            candidates.append((eo,t))
+        best_cand = min(candidates[1])
+        sel_terms.append(best_cand)
+        rem_term_sets.remove(best_cand)
+        
+
+
+def EO(C, R):
+    sm = 0
+
+    for d in C:
+        f = len([{s} for s in R if {s}.issubset(d)])
+        sm += (-(1/f) * log(1/f))
+
+    return sm
 
 
 def main(*args):
     
-    minsup = .05
-#     docs = [
-#             "Human machine interface for ABC computer applications",
-#             "A survey of user opinion of computer system response time",
-#             "The EPS user interface management system",
-#             "System an human system engineering testing for EPS",
-#             "Relation of user perceived response time to error measurement",
-#             "The generation of random, binary, ordered trees",
-#             "The intersection graph of paths in trees",
-#             "Graph minors IV: Widths of trees and well-quasi-ordering",
-#             "Graph minors: A survey"
-#             ]
-    docs = [title for title in open("/home/netzsooc/Documents/infotec/Investigacion/cleanAbstracts.txt")]
+    minsup = .22
+    docs = [
+            "Human machine interface for ABC computer applications",
+            "A survey of user opinion of computer system response time",
+            "The EPS user interface management system",
+            "System an human system engineering testing for EPS",
+            "Relation of user perceived response time to error measurement",
+            "The generation of random, binary, ordered trees",
+            "The intersection graph of paths in trees",
+            "Graph minors IV: Widths of trees and well-quasi-ordering",
+            "Graph minors: A survey"
+            ]
+#     docs = [title for title in open("/home/netzsooc/Documents/infotec/"\
+#                                         "Investigacion/justTitles.txt")]
     
 
     T = get_vocabulary(docs)
@@ -32,8 +80,26 @@ def main(*args):
     for i in range(len(docs)):
         D["D" + str(i)] = get_terms(docs[i], enc)
     print(len(T))
-    F = set([enc[i] for i in T if len(cov({enc[i]}, D)) >= minsup * len(D)])
+#     S = set([enc[i] for i in T if len(cov({enc[i]}, D)) >= minsup * len(D)])
+    F = get_all_freq_term_sets(T, D, enc, minsup)
+#     F1 =[]
+#     for i in range(1, len(S) + 1):
+#         F += [set(j) for j in combinations(S,i)]
+#     for i in F1:
+#         F.append(set(i))
+#     print(F)
     print(len(F))
+    temp = []
+    for term in F:
+        for i in (cov(term, D)):
+            temp.append(i)
+            
+    temp = list(set(temp))
+     
+    print("temp_set =",len(temp), "docs =", len(docs))    
+    print(len(temp) == len(docs))
+    print(temp)
+    print(F)
 
     
 if __name__ == "__main__": main()
