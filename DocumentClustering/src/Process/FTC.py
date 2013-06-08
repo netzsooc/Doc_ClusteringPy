@@ -14,32 +14,32 @@ class FTC(object):
     selected_terms = set() 
 
 
-    def __init__(self, D, minsup, enc, T):
+    def __init__(self, D, minsup, T):
         n = len(D)
-        rem_term_sets = get_all_freq_term_sets(T, D, enc, minsup)
+        self.rem_term_sets = self._get_all_freq_term_sets(T, D, minsup)
     #     print(len(sel_terms))
-        while len(cov(sel_terms, D)) != n:
-            candidates = []
-            for t in rem_term_sets:
-                c = cov(t, D)
-                eo = EO(c, rem_term_sets, D)
-                candidates.append((eo,t))
-            best_cand = min(candidates)
-    #         print(best_cand)
-            sel_terms.union(best_cand[1])
-            rem_term_sets.remove(best_cand[1])
+        #while len(cov(sel_terms, D)) != n:
+            #candidates = []
+            #for t in rem_term_sets:
+                #c = cov(t, D)
+                #eo = EO(c, rem_term_sets, D)
+                #candidates.append((eo,t))
+            #best_cand = min(candidates)
+    ##         print(best_cand)
+            #sel_terms.union(best_cand[1])
+            #rem_term_sets.remove(best_cand[1])
             
-            Ds = [d for d in cov(best_cand[1], D)]
-            for d in Ds:
-                D.pop(d, None)
+            #Ds = [d for d in cov(best_cand[1], D)]
+            #for d in Ds:
+                #D.pop(d, None)
     
-        for i in range(len(sel_terms)):
-            sel_terms[i] = (sel_terms[i], cov(sel_terms[i], D))
-        return sel_terms
+        #for i in range(len(sel_terms)):
+            #sel_terms[i] = (sel_terms[i], cov(sel_terms[i], D))
+        #return sel_terms
 
 
-    def _get_all_freq_term_sets(T, D, enc, minsup):
-        S = set([enc[t] for t in T if len(cov({enc[t]}, D)) >= minsup * len(D)])
+    def _get_all_freq_term_sets(self, T, D,  minsup):
+        S = set([t for t in T if len(cov({t}, D)) >= minsup * len(D)])
         F = []
         for i in range(1, len(S) + 1):
             F += [set(j) for j in combinations(S,i)]
@@ -65,7 +65,7 @@ def EO(C, R, D):
 
     return sm
 
-
+[x for x in T if len(cov(x, D)) >= (minsup * len(D))]
 def main(*args):
     
     minsup = .2
@@ -91,12 +91,14 @@ def main(*args):
     D = {}
     print("Building D")
     for i in range(len(docs)):
-        D["D" + str(i)] = get_terms(docs[i], enc)
+        D["D" + str(i)] = get_terms(docs[i])
     print("Done")
     print(len(T))
     print("getting FTC")
-    out = FTC(D, minsup, enc, T)
+    out = FTC(D, minsup, T)
+    print(out.rem_term_sets)
     print("done")
+    x = set([i for i in t if len(cov({t}, D)) >= minsup * len(D)])
 #     print("going out")
 #     print(out)
 #     print("goodbye")

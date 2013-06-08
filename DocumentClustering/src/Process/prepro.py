@@ -9,7 +9,7 @@ stop = ["the", "for", "of", "a", "and", "to", "in", "an"]
 ignore = "(),:'\""
 
 
-def get_terms(doc, index, ignorechars=ignore, stopwords=stop):
+def get_terms(doc, index=None, ignorechars=ignore, stopwords=stop):
     if index:
         return set([index[Stemmer()(term.lower().
                 translate(term.maketrans('','',ignorechars)))]
