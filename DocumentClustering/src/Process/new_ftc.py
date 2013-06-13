@@ -6,11 +6,13 @@ from porterstemmer import Stemmer
 def get_all_terms(D):
   T = []
   my_D = []
-  
-  for i in range(len(D)):
+  my_Dict = {}
+  n = 0
+  for i in D:
+    n += 1
     temp = []
     stopwords = ["a", "an", "and", "for", "of", "the", "to", "in"]
-    for w in D[i].split():
+    for w in i.split():
       w = Stemmer()(w.lower().translate(w.maketrans(
 			  '','',".!':,;()!")))
       if w in stopwords:
@@ -18,12 +20,14 @@ def get_all_terms(D):
       
       temp.append(w)
       del(w)
-      
-    T.extend(list(set(temp)))
-    my_D.append(tuple(set(temp)))
+
+    st = set(temp)
+    T.extend(list(st))
+    my_D.append(tuple(st))
+    my_Dict[tuple(st)] = n
     del(temp)
     
-  return list(set(T)), list(set(my_D))
+  return list(set(T)), list(set(my_D)), my_Dict
 
 
 def cov(S, D):
@@ -86,8 +90,8 @@ def card_sel(termsets, D):
     print(Ds)
     return len(Ds)
 
-
-# docs = [
+#
+#docs = [
 # 	"Human machine interface for ABC computer applications",
 # 	"A survey of user opinion of computer system response time",
 # 	"The EPS user interface management system",
@@ -98,9 +102,12 @@ def card_sel(termsets, D):
 # 	"Graph minors IV: Widths of trees and well-quasi-ordering",
 # 	"Graph minors: itemA survey"
 #        ]
-docs = [l.strip() for l in open("/home/netzsooc/Documents/just_abstracts.txt")]
-T, D = get_all_terms(docs)
-DicD = {}
+docs = []
+with open("/home/netzsooc/Documents/just_abstracts.txt") as f:
+    for line in f:
+        docs.append(line)
+#docs = [l.strip() for l in open("/home/netzsooc/Documents/just_abstracts.txt")]
+T, D, DicD = get_all_terms(docs)
 for i in range(len(D)):
     DicD[D[i]] = str(i + 1)
 minsup = .2
@@ -149,4 +156,4 @@ while card != n:
     
 print(D)
 for i in sel_terms:
-    print(i, [DicD[x] for x in cov(i, D1)])
+    print(i, cov(i, D1))
